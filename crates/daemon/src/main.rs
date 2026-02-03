@@ -23,16 +23,14 @@ unsafe extern "system" fn low_level_keyboard_proc(
 
 fn main() -> anyhow::Result<()> {
     unsafe {
-        let h_hook = unsafe {
-            SetWindowsHookExW(
-                WH_KEYBOARD_LL,
-                Some(low_level_keyboard_proc),
-                ptr::null_mut(),
-                0,
-            )
-        };
+        let h_hook = SetWindowsHookExW(
+            WH_KEYBOARD_LL,
+            Some(low_level_keyboard_proc),
+            ptr::null_mut(),
+            0,
+        );
 
-        if h_hook == ptr::null_mut() {
+        if h_hook.is_null() {
             let err = GetLastError();
             return Err(anyhow::anyhow!("Failed to set hook: {}", err));
         }
