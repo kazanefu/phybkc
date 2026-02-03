@@ -179,3 +179,13 @@ Runで指定したコマンドが失敗した場合は、音だけ出して特�
 TryRun/TryExecuteは失敗した時にFailRunかFailExecuteを実行する。
 TryRun: "mkdir test":FailExecute: "C:/Program Files/APP/APP.exe";
 TryExecute: "C:/Program Files/APP/APP.exe":FailRun: "echo error";
+
+## 入力エミュレート
+SendInputで入力エミュレートする。
+スクリプトでの構文は
+```phybkc
+Send: Code_A;
+Send: "0xhoge" + Code_B;
+Send: String("Hello");
+Send: String("Hello") + Code_Enter;
+```
