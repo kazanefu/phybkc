@@ -44,6 +44,7 @@ hogehoge = "D:scripts/hogehoge.phybkc"
 ```json
 {
     "name": "profileA",
+    "keyboard": "JIS",
     "scripts": [
         "C:/User/phybkc/scripts/scriptA.phybkc"
     ],
@@ -167,3 +168,14 @@ ScanCode
 
 ## キーボードレイアウトの考慮
 プロファイル編集画面でレイアウト選択するようにする
+ScanCode の差異もここで判断する (この項目をプロファイル設定ファイルにも含めるように変更した)
+
+## スクリプトの同時実行
+GUIでプロファイルを編集するときにスクリプトを追加するときに順番も指定するようにして順番の小さい方を優先するようにする
+
+## 例外処理
+Runで指定したコマンドが失敗した場合は、音だけ出して特に何もしない
+新たにTryRunとTryExecuteを定義する。
+TryRun/TryExecuteは失敗した時にFailRunかFailExecuteを実行する。
+TryRun: "mkdir test":FailExecute: "C:/Program Files/APP/APP.exe";
+TryExecute: "C:/Program Files/APP/APP.exe":FailRun: "echo error";
