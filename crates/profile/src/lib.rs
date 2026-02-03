@@ -1,14 +1,22 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Config {
+    pub profiles: HashMap<String, String>,
+    pub default_profile: DefaultProfile,
+    pub global_scripts: HashMap<String, String>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DefaultProfile {
+    pub default: String,
+}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Profile {
+    pub name: String,
+    pub keyboard: String,
+    pub scripts: Vec<String>,
+    pub keys: HashMap<String, String>,
 }
