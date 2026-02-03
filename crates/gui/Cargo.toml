@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 profile = { path = "../profile" }
+eframe = "0.33.3"
+egui = "0.33.3"
