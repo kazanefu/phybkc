@@ -189,3 +189,6 @@ Send: "0xhoge" + Code_B;
 Send: String("Hello");
 Send: String("Hello") + Code_Enter;
 ```
+
+## スクリプト実行について
+必ず並列処理を使ってスクリプト内で重い処理があっても他に影響が出ないようにする
