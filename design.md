@@ -195,7 +195,7 @@ SendInputで入力エミュレートする。
 
 ```phybkc
 Send: Code_A;
-Send: "0xhoge" + Code_B;
+Send: #0xhoge + Code_B;
 Send: String("Hello");
 Send: String("Hello") + Code_Enter;
 ```
