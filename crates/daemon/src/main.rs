@@ -7,7 +7,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::*;
 
 static CURRENT_PROFILE: OnceLock<Profile> = OnceLock::new();
 
-unsafe fn send_key_event(scan_code: u16, is_key_down: bool, is_sys_key: bool) {
+unsafe fn send_key_event(scan_code: u16, is_key_down: bool, _is_sys_key: bool) {
     let mut input: INPUT = unsafe { std::mem::zeroed() };
     input.r#type = INPUT_KEYBOARD;
 
@@ -46,23 +46,25 @@ unsafe extern "system" fn low_level_keyboard_proc(
         let is_key_down = event == WM_KEYDOWN || event == WM_SYSKEYDOWN;
         let is_sys_key = event == WM_SYSKEYDOWN || event == WM_SYSKEYUP;
 
-        if let Some(profile) = CURRENT_PROFILE.get() {
-            let scan_code_str = format!("0x{:02X}", scan_code);
-            if let Some(target_key_name) = profile.keys.get(&scan_code_str) {
-                // For now, assume target_key_name is a hex string "0x.."
-                if let Ok(target_scan_code) =
-                    u16::from_str_radix(target_key_name.trim_start_matches("0x"), 16)
-                {
-                    println!(
-                        "Remapping 0x{:02X} -> 0x{:02X}",
-                        scan_code, target_scan_code
-                    );
-                    unsafe {
-                        send_key_event(target_scan_code, is_key_down, is_sys_key);
-                    }
-                    return 1; // Block original input
-                }
+        if let Some(profile) = CURRENT_PROFILE.get()
+            && let Some(target_scan_code) = profile
+                .keys
+                .get(&format!("0x{:02X}", scan_code))
+                .and_then(|target_key_name| profile::get_scancode(target_key_name))
+        {
+            // Retrieve the original name for logging if possible, otherwise use the scan code hex
+            let target_name = profile::get_name(target_scan_code)
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| format!("0x{:02X}", target_scan_code));
+
+            println!(
+                "Remapping 0x{:02X} -> 0x{:02X} ({})",
+                scan_code, target_scan_code, target_name
+            );
+            unsafe {
+                send_key_event(target_scan_code, is_key_down, is_sys_key);
             }
+            return 1; // Block original input
         }
 
         if is_key_down {

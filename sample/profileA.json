@@ -3,7 +3,8 @@
     "keyboard": "JIS",
     "scripts": [],
     "keys": {
-        "0x02": "0x1E",
-        "0x03": "0x1F"
+        "0x02": "A",
+        "0x03": "Escape",
+        "0x04": "0x05"
     }
 }

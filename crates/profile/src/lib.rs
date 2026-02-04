@@ -3,6 +3,9 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
+pub mod key_map;
+pub use key_map::{get_name, get_scancode};
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub profiles: HashMap<String, String>,
