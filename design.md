@@ -56,9 +56,11 @@ hogehoge = "D:scripts/hogehoge.phybkc"
 
 }
 ```
+
 みたいな感じにする
 
 スクリプトの構文は
+
 ```phybkc
 // コメントはダブルスラッシュ
 // セミコロンは必須
@@ -131,6 +133,7 @@ Code_Tab + Code_H{
 }
 
 ```
+
 みたいな感じ
 
 ## crates
@@ -158,22 +161,26 @@ Code_Tab + Code_H{
 
 - GUIを完成させるまでのデバッグ用でGUIですることを大体コマンドラインでできるようにする
 
-
 ## 物理キーの識別方法
+
 ScanCode
 
 ## GUIとデーモンの通信方法
+
 基本的に通信はしない
 プロファイル設定などを更新するときには一度デーモンを終了し、Activateボタンを押すことで再起動する
 
 ## キーボードレイアウトの考慮
+
 プロファイル編集画面でレイアウト選択するようにする
 ScanCode の差異もここで判断する (この項目をプロファイル設定ファイルにも含めるように変更した)
 
 ## スクリプトの同時実行
+
 GUIでプロファイルを編集するときにスクリプトを追加するときに順番も指定するようにして順番の小さい方を優先するようにする
 
 ## 例外処理
+
 Runで指定したコマンドが失敗した場合は、音だけ出して特に何もしない
 新たにTryRunとTryExecuteを定義する。
 TryRun/TryExecuteは失敗した時にFailRunかFailExecuteを実行する。
@@ -181,8 +188,10 @@ TryRun: "mkdir test":FailExecute: "C:/Program Files/APP/APP.exe";
 TryExecute: "C:/Program Files/APP/APP.exe":FailRun: "echo error";
 
 ## 入力エミュレート
+
 SendInputで入力エミュレートする。
 スクリプトでの構文は
+
 ```phybkc
 Send: Code_A;
 Send: "0xhoge" + Code_B;
@@ -191,4 +200,5 @@ Send: String("Hello") + Code_Enter;
 ```
 
 ## スクリプト実行について
+
 必ず並列処理を使ってスクリプト内で重い処理があっても他に影響が出ないようにする
