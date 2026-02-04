@@ -1,5 +1,5 @@
 [profiles]
-profileA = "profileA.json"
+profileA = "sample/profileA.json"
 
 [default_profile]
 default = "profileA"
