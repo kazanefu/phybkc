@@ -76,7 +76,7 @@ unsafe extern "system" fn low_level_keyboard_proc(
 
 fn main() -> anyhow::Result<()> {
     // Load config and profile
-    let config = Config::load_from_file("config.toml")?;
+    let config = Config::load_from_file("sample/config.toml")?;
     let default_profile_path = config
         .profiles
         .get(&config.default_profile.default)
