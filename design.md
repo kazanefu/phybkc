@@ -74,19 +74,19 @@ CLI = PowerShell;
 // +で同時に押されている必要のあるものを付け足していける
 // Code_A + Code_BならばA -> Bの順で入力を受け付け, AとBが両方とも押されている状態に呼ばれる
 // つまりCode_A + Code_BとCode_B + Code_Aで別々の定義が可能
-"0xhoge" + "0xfuga" + Code_A{
+#0xhoge + #0xfuga + Code_A{
     // Runは指定したCLIでコマンドを実行する
     // Executeは指定したアプリケーションで実行する(指定は絶対パス)
     Run: "mkdir test";
     Execute: "C:/Program Files/APP/APP.exe";
 }
 
-"0xfoo" + Code_LeftShift{
+#0xfoo + Code_LeftShift{
     // wait_inputは指定したキーが押されるまで待機する
     // 待機中に他のキーが押された場合は待機を中断する
-    if wait_input("0xhogehoge" + "0xfoofoo"){
+    if wait_input(#0xhogehoge + #0xfoofoo){
         Run: "wsl ~";
-    } elif wait_input("0xhogehoge" + "0xfoofoo"){
+    } elif wait_input(#0xhogehoge + #0xfoofoo){
         Run: "wsl ~";
     } else {
         Run: "wsl ~";
@@ -94,12 +94,12 @@ CLI = PowerShell;
 
     // wait_input_timeは指定したキーが指定した時間内に押されたらtrueを返す
     // 時間はミリ秒
-    if wait_input_time("0xhogehoge" + "0xfoofoo", 10){
+    if wait_input_time(#0xhogehoge + #0xfoofoo, 10){
         Execute: "C:/Program Files/APP/APP.exe";
     }
 
     // now_inputは待たずに現在の入力状態をチェックする
-    if now_input("0xhogehoge" + "0xfoofoo"){
+    if now_input(#0xhogehoge + #0xfoofoo){
         // loopは指定した回数だけ指定した処理を繰り返す
         loop 10{
             Run: "ls";
@@ -108,13 +108,13 @@ CLI = PowerShell;
 
     // wait_releasedは指定したキーが離されるまで待機する
     // 待機中に他のキーが押された場合は待機を中断する
-    if wait_released("0xhogehoge" + "0xfoofoo"){
+    if wait_released(#0xhogehoge + #0xfoofoo){
         Run: "wsl ~";
     }
 
     // wait_released_timeは指定したキーが指定した時間内に離されたらtrueを返す
     // 時間はミリ秒
-    if wait_released_time("0xhogehoge" + "0xfoofoo", 10){
+    if wait_released_time(#0xhogehoge + #0xfoofoo, 10){
         Execute: "C:/Program Files/APP/APP.exe";
     }
 }
@@ -135,7 +135,7 @@ Code_Tab + Code_H{
 ```
 
 みたいな感じ
-**スクリプトに仕様変更**: `"0x2E"`のように表記するのではなく`#0x2E`のようにする
+**スクリプトに仕様変更**: `"0x2E"`のように表記するのではなく`#0x2E`のようにする。また、E0キーを押す必要がある場合は`#E0/0x2E`のように表記する。
 
 ## crates
 
