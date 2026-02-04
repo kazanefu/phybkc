@@ -1,0 +1,7 @@
+[profiles]
+profileA = "profileA.json"
+
+[default_profile]
+default = "profileA"
+
+[global_scripts]
