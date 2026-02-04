@@ -230,9 +230,7 @@ fn parse_string_literal_expr(input: &mut &str) -> PResult<SendExpression> {
 }
 
 fn parse_key_expr(input: &mut &str) -> PResult<SendExpression> {
-    parse_trigger_key
-        .map(|k| SendExpression::Key(k))
-        .parse_next(input)
+    parse_trigger_key.map(SendExpression::Key).parse_next(input)
 }
 
 fn parse_wait_stmt(input: &mut &str) -> PResult<Statement> {
