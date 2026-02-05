@@ -1,16 +1,12 @@
 use eframe::egui;
 use profile::Profile;
 
-pub fn scripts_view(
-    ui: &mut egui::Ui,
-    current_profile: &Option<Profile>,
-    editing_script: &mut Option<(String, String)>,
-) {
+pub fn scripts_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
     ui.heading("Active Scripts");
     ui.add_space(10.0);
 
     let mut close_editor = false;
-    if let Some(script_data) = editing_script {
+    if let Some(script_data) = &mut app.editing_script {
         ui.horizontal(|ui| {
             if ui.button("⬅ Back").clicked() {
                 close_editor = true;
@@ -37,12 +33,12 @@ pub fn scripts_view(
         });
 
         if close_editor {
-            *editing_script = None;
+            app.editing_script = None;
         }
         return;
     }
 
-    if let Some(profile) = current_profile {
+    if let Some(profile) = &app.current_profile {
         egui::ScrollArea::vertical().show(ui, |ui| {
             for script_path in &profile.scripts {
                 ui.group(|ui| {
@@ -51,7 +47,7 @@ pub fn scripts_view(
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             if ui.button("Edit").clicked() {
                                 if let Ok(content) = std::fs::read_to_string(script_path) {
-                                    *editing_script = Some((script_path.clone(), content));
+                                    app.editing_script = Some((script_path.clone(), content));
                                 }
                             }
                         });

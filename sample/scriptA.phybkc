@@ -24,3 +24,7 @@ Code_F12 {
 Code_F11 {
     Send: Code_Ctrl:hold + Code_X;
 }
+
+Code_F10 {
+	Send: String("F10");
+}

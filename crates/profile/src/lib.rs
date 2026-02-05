@@ -6,7 +6,7 @@ use std::path::Path;
 pub mod key_map;
 pub use key_map::{get_name, get_scancode};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     pub profiles: HashMap<String, String>,
     pub default_profile: DefaultProfile,
@@ -19,14 +19,20 @@ impl Config {
         let config: Config = toml::from_str(&content)?;
         Ok(config)
     }
+
+    pub fn save_to_file<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+        let content = toml::to_string_pretty(self)?;
+        fs::write(path, content)?;
+        Ok(())
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DefaultProfile {
     pub default: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Profile {
     pub name: String,
     pub keyboard: String,
@@ -39,6 +45,12 @@ impl Profile {
         let content = fs::read_to_string(path)?;
         let profile: Profile = serde_json::from_str(&content)?;
         Ok(profile)
+    }
+
+    pub fn save_to_file<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+        let content = serde_json::to_string_pretty(self)?;
+        fs::write(path, content)?;
+        Ok(())
     }
 }
 
