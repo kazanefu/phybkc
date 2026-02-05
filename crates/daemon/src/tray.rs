@@ -1,37 +1,59 @@
+use profile::Config;
 use tray_icon::{
     TrayIcon, TrayIconBuilder,
-    menu::{Menu, MenuEvent, MenuItem},
+    menu::{IsMenuItem, Menu, MenuEvent, MenuItem, Submenu},
 };
 
-pub fn init_tray() -> anyhow::Result<TrayIcon> {
+#[derive(Debug)]
+pub enum TrayAction {
+    None,
+    Quit,
+    Reload,
+    SwitchProfile(String),
+}
+
+pub fn init_tray(config: &Config) -> anyhow::Result<TrayIcon> {
     let tray_menu = Menu::new();
-    let quit_item = MenuItem::new("Quit", true, None);
-    let reload_item = MenuItem::new("Reload Profile", true, None);
+    let quit_item = MenuItem::with_id("quit", "Quit", true, None);
+    let reload_item = MenuItem::with_id("reload", "Reload Profile", true, None);
+
+    let profile_submenu = Submenu::new("Profiles", true);
+    for name in config.profiles.keys() {
+        let item = MenuItem::with_id(format!("profile:{}", name), name, true, None);
+        profile_submenu.append(&item)?;
+    }
 
     tray_menu.append_items(&[
-        &reload_item as &dyn tray_icon::menu::IsMenuItem,
-        &quit_item as &dyn tray_icon::menu::IsMenuItem,
+        &profile_submenu as &dyn IsMenuItem,
+        &reload_item as &dyn IsMenuItem,
+        &quit_item as &dyn IsMenuItem,
     ])?;
 
-    // For now, use a blank or simple icon.
-    // In a real app, we'd load an ico file.
+    let tooltip = format!("phybkc - {}", config.default_profile.default);
     let icon = load_icon();
 
     let tray_icon = TrayIconBuilder::new()
         .with_menu(Box::new(tray_menu))
-        .with_tooltip("phybkc daemon")
+        .with_tooltip(tooltip)
         .with_icon(icon)
         .build()?;
 
     Ok(tray_icon)
 }
 
-pub fn handle_tray_events() {
+pub fn handle_tray_events() -> TrayAction {
     if let Ok(event) = MenuEvent::receiver().try_recv() {
-        println!("Tray event: {:?}", event);
-        // Handle events here (Quit, Reload, etc.)
-        // For Quit, we might want to signal the main loop to exit.
+        let id = event.id.0.as_str();
+        if id == "quit" {
+            return TrayAction::Quit;
+        } else if id == "reload" {
+            return TrayAction::Reload;
+        } else if id.starts_with("profile:") {
+            let profile_name = id.trim_start_matches("profile:").to_string();
+            return TrayAction::SwitchProfile(profile_name);
+        }
     }
+    TrayAction::None
 }
 
 fn load_icon() -> tray_icon::Icon {

@@ -34,14 +34,15 @@ pub unsafe extern "system" fn low_level_keyboard_proc(
             if is_key_down {
                 h.insert(actual_sc);
 
-                if let Some(triggers) = SCRIPT_TRIGGERS.get() {
+                if let Some(triggers_lock) = SCRIPT_TRIGGERS.get() {
+                    let triggers = triggers_lock.read().unwrap();
                     let h_ref: &BTreeSet<u16> = &h;
                     let mut best_match: Option<(&Vec<u16>, &dsl::Block)> = None;
 
                     // Status keys to ignore if not part of the trigger
                     let status_keys = [0x3A, 0x29, 0x7B, 0x79, 0x70];
 
-                    for (combo, block) in triggers {
+                    for (combo, block) in triggers.iter() {
                         let is_all_held = combo.iter().all(|k| h_ref.contains(k));
                         let is_last_key = combo.last() == Some(&actual_sc);
                         let only_status_extras = h_ref
@@ -59,13 +60,15 @@ pub unsafe extern "system" fn low_level_keyboard_proc(
                         }
                     }
 
-                    if let (Some((_, block)), Some(executor)) = (best_match, EXECUTOR.get()) {
-                        let exec = Arc::clone(executor);
-                        let b = block.clone();
-                        tokio::spawn(async move {
-                            exec.execute_block(&b).await;
-                        });
-                        return 1;
+                    if let (Some((_, block)), Some(executor_lock)) = (best_match, EXECUTOR.get()) {
+                        if let Some(executor) = executor_lock.read().unwrap().as_ref() {
+                            let exec = Arc::clone(executor);
+                            let b = block.clone();
+                            tokio::spawn(async move {
+                                exec.execute_block(&b).await;
+                            });
+                            return 1;
+                        }
                     }
                 }
             } else {
@@ -73,17 +76,19 @@ pub unsafe extern "system" fn low_level_keyboard_proc(
             }
         }
 
-        if let Some(profile) = CURRENT_PROFILE.get() {
-            let sc_str = format!("0x{:02X}", actual_sc);
-            if let Some(target_sc) = profile
-                .keys
-                .get(&sc_str)
-                .and_then(|name| profile::get_scancode(name))
-            {
-                unsafe {
-                    send_key_event(target_sc, is_key_down, false);
+        if let Some(profile_lock) = CURRENT_PROFILE.get() {
+            if let Some(profile) = profile_lock.read().unwrap().as_ref() {
+                let sc_str = format!("0x{:02X}", actual_sc);
+                if let Some(target_sc) = profile
+                    .keys
+                    .get(&sc_str)
+                    .and_then(|name| profile::get_scancode(name))
+                {
+                    unsafe {
+                        send_key_event(target_sc, is_key_down, false);
+                    }
+                    return 1;
                 }
-                return 1;
             }
         }
     }
