@@ -1,5 +1,4 @@
 use eframe::egui;
-use profile::Profile;
 
 pub fn scripts_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
     ui.heading("Active Scripts");
@@ -45,11 +44,10 @@ pub fn scripts_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
                     ui.horizontal(|ui| {
                         ui.label(script_path);
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            if ui.button("Edit").clicked() {
-                                if let Ok(content) = std::fs::read_to_string(script_path) {
+                            if ui.button("Edit").clicked()
+                                && let Ok(content) = std::fs::read_to_string(script_path) {
                                     app.editing_script = Some((script_path.clone(), content));
                                 }
-                            }
                         });
                     });
                 });

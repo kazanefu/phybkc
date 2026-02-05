@@ -60,8 +60,8 @@ pub unsafe extern "system" fn low_level_keyboard_proc(
                         }
                     }
 
-                    if let (Some((_, block)), Some(executor_lock)) = (best_match, EXECUTOR.get()) {
-                        if let Some(executor) = executor_lock.read().unwrap().as_ref() {
+                    if let (Some((_, block)), Some(executor_lock)) = (best_match, EXECUTOR.get())
+                        && let Some(executor) = executor_lock.read().unwrap().as_ref() {
                             let exec = Arc::clone(executor);
                             let b = block.clone();
                             tokio::spawn(async move {
@@ -69,15 +69,14 @@ pub unsafe extern "system" fn low_level_keyboard_proc(
                             });
                             return 1;
                         }
-                    }
                 }
             } else {
                 h.remove(&actual_sc);
             }
         }
 
-        if let Some(profile_lock) = CURRENT_PROFILE.get() {
-            if let Some(profile) = profile_lock.read().unwrap().as_ref() {
+        if let Some(profile_lock) = CURRENT_PROFILE.get()
+            && let Some(profile) = profile_lock.read().unwrap().as_ref() {
                 let sc_str = format!("0x{:02X}", actual_sc);
                 if let Some(target_sc) = profile
                     .keys
@@ -90,7 +89,6 @@ pub unsafe extern "system" fn low_level_keyboard_proc(
                     return 1;
                 }
             }
-        }
     }
     unsafe { CallNextHookEx(ptr::null_mut(), n_code, w_param, l_param) }
 }

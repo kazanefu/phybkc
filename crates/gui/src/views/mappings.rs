@@ -20,14 +20,12 @@ pub fn mappings_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
         }
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            if ui.button("Save Changes").clicked() {
-                if let Some(config) = &app.config {
-                    if let Some(path) = config.profiles.get(&profile.name) {
+            if ui.button("Save Changes").clicked()
+                && let Some(config) = &app.config
+                    && let Some(path) = config.profiles.get(&profile.name) {
                         let _ = profile.save_to_file(path);
                         app.current_profile = Some(profile.clone());
                     }
-                }
-            }
         });
     });
 

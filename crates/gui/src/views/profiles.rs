@@ -72,11 +72,10 @@ pub fn profiles_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
                                         app.export_profile(&name, &export_dir);
                                     }
 
-                                    if !is_default {
-                                        if ui.button("Set Default").clicked() {
+                                    if !is_default
+                                        && ui.button("Set Default").clicked() {
                                             app.set_default_profile(&name);
                                         }
-                                    }
 
                                     if !is_active {
                                         if ui.button("Activate").clicked() {

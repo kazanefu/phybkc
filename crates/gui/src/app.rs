@@ -36,11 +36,10 @@ impl PhybkcApp {
     }
 
     fn load_default_profile(&mut self) {
-        if let Some(config) = &self.config {
-            if let Some(profile_path) = config.profiles.get(&config.default_profile.default) {
+        if let Some(config) = &self.config
+            && let Some(profile_path) = config.profiles.get(&config.default_profile.default) {
                 self.current_profile = Profile::load_from_file(profile_path).ok();
             }
-        }
     }
 
     pub fn save_config(&self) {
@@ -60,17 +59,16 @@ impl PhybkcApp {
             scripts: vec![],
             keys: std::collections::HashMap::new(),
         };
-        if let Some(config) = &mut self.config {
-            if new_profile.save_to_file(&path).is_ok() {
+        if let Some(config) = &mut self.config
+            && new_profile.save_to_file(&path).is_ok() {
                 config.profiles.insert(name.to_string(), path);
                 self.save_config();
             }
-        }
     }
 
     pub fn delete_profile(&mut self, name: &str) {
-        if let Some(config) = &mut self.config {
-            if let Some(path) = config.profiles.remove(name) {
+        if let Some(config) = &mut self.config
+            && let Some(path) = config.profiles.remove(name) {
                 let _ = std::fs::remove_file(path);
                 if config.default_profile.default == name {
                     config.default_profile.default =
@@ -87,26 +85,24 @@ impl PhybkcApp {
                     self.load_default_profile();
                 }
             }
-        }
     }
 
     pub fn import_profile(&mut self, path: &str) {
         if let Ok(profile) = Profile::load_from_file(path) {
             let name = profile.name.clone();
             let new_path = format!("sample/{}.json", name);
-            if std::fs::copy(path, &new_path).is_ok() {
-                if let Some(config) = &mut self.config {
+            if std::fs::copy(path, &new_path).is_ok()
+                && let Some(config) = &mut self.config {
                     config.profiles.insert(name, new_path);
                     self.save_config();
                 }
-            }
         }
     }
 
     pub fn export_profile(&self, name: &str, target_dir: &str) {
-        if let Some(config) = &self.config {
-            if let Some(path) = config.profiles.get(name) {
-                if let Ok(profile) = Profile::load_from_file(path) {
+        if let Some(config) = &self.config
+            && let Some(path) = config.profiles.get(name)
+                && let Ok(profile) = Profile::load_from_file(path) {
                     let _ = std::fs::create_dir_all(target_dir);
                     let target_json =
                         std::path::Path::new(target_dir).join(format!("{}.json", name));
@@ -120,8 +116,6 @@ impl PhybkcApp {
                         }
                     }
                 }
-            }
-        }
     }
 
     pub fn set_default_profile(&mut self, name: &str) {
