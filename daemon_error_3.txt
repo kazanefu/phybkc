@@ -1,0 +1,48 @@
+   Compiling daemon v0.1.0 (C:\Users\hayate\projects\phybkc\crates\daemon)
+warning: unused import: `TriggerCombinations`
+ --> crates\daemon\src\main.rs:4:5
+  |
+4 |     TriggerCombinations, TriggerKey,
+  |     ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0599]: the method `get` exists for reference `&HashMap<HashSet<u16>, Block>`, but its trait bounds were not satisfied
+   --> crates\daemon\src\main.rs:189:51
+    |
+189 |                     if let Some(block) = triggers.get(&h) {
+    |                                                   ^^^ method cannot be called on `&HashMap<HashSet<u16>, Block>` due to unsatisfied trait bounds
+    |
+   ::: C:\Users\hayate\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib/rustlib/src/rust\library\std\src\collections\hash\set.rs:125:1
+    |
+125 | pub struct HashSet<T, S = RandomState> {
+    | -------------------------------------- doesn't satisfy `HashSet<u16>: Hash`
+    |
+    = note: the following trait bounds were not satisfied:
+            `HashSet<u16>: Hash`
+
+error[E0282]: type annotations needed
+   --> crates\daemon\src\main.rs:192:37
+    |
+192 | ...                   let b = block.clone();
+    |                               ^^^^^ cannot infer type
+
+error[E0277]: the trait bound `HashSet<u16>: Hash` is not satisfied
+    --> crates\daemon\src\main.rs:261:30
+     |
+ 261 |                 triggers_map.insert(resolved_combo, block.clone());
+     |                              ^^^^^^ the trait `Hash` is not implemented for `HashSet<u16>`
+     |
+note: required by a bound in `HashMap::<K, V, S>::insert`
+    --> C:\Users\hayate\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib/rustlib/src/rust\library\std\src\collections\hash\map.rs:767:13
+     |
+ 767 |     K: Eq + Hash,
+     |             ^^^^ required by this bound in `HashMap::<K, V, S>::insert`
+...
+1207 |     pub fn insert(&mut self, k: K, v: V) -> Option<V> {
+     |            ------ required by a bound in this associated function
+
+Some errors have detailed explanations: E0277, E0282, E0599.
+For more information about an error, try `rustc --explain E0277`.
+warning: `daemon` (bin "daemon") generated 1 warning
+error: could not compile `daemon` (bin "daemon") due to 3 previous errors; 1 warning emitted

@@ -1,0 +1,16 @@
+// Sample Script for Testing
+
+macro NOTIFY {
+    Run: "echo Script Triggered!";
+}
+
+#0x02 + Code_X {
+    NOTIFY!;
+    if now_input(#0x01) {
+        Execute: "Write-Output 'Triggered with Escape'";
+    }
+}
+
+#0x3B {
+    Send: String("Hello from Phybkc") + Code_Enter;
+}

@@ -1,0 +1,79 @@
+warning: field `global_settings` is never read
+  --> crates\dsl\src\executor.rs:21:5
+   |
+20 | pub struct Executor {
+   |            -------- field in this struct
+21 |     global_settings: V...
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `dsl` (lib) generated 1 warning
+    Checking daemon v0.1.0 (C:\Users\hayate\projects\phybkc\crates\daemon)
+warning: unused import: `tokio::sync::mpsc`
+ --> crates\daemon\src\main.rs:7:5
+  |
+7 | use tokio::sync::mpsc;
+  |     ^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0277]: `Executor` doesn't implement `Debug`
+    --> crates\daemon\src\main.rs:227:28
+     |
+ 227 |     EXECUTOR.set(executor).unwrap();
+     |                            ^^^^^^ the trait `Debug` is not implemented for `Executor`
+     |
+     = help: the trait `Debug` is implemented for `Arc<T, A>`
+     = note: required for `Arc<Executor>` to implement `Debug`
+note: required by a bound in `Result::<T, E>::unwrap`
+    --> C:\Users\hayate\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib/rustlib/src/rust\library\core\src\result.rs:1229:12
+     |
+1227 |     pub fn unwrap(self) -> T
+     |            ------ required by a bound in this associated function
+1228 |     where
+1229 |         E: fmt::Debug,
+     |            ^^^^^^^^^^ required by this bound in `Result::<T, E>::unwrap`
+
+warning[E0133]: access to union field is unsafe and requires unsafe block
+   --> crates\daemon\src\main.rs:122:9
+    |
+122 |         inputs[1].Anonymous.ki.dwFlags |= KEYEVENTF_KEYUP;
+    |         ^^^^^^^^^^^^^^^^^^^^^^ access to union field
+    |
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+    = note: the field may not be properly initialized: using uninitialized data will cause undefined behavior
+note: an unsafe function restricts its caller, but its body is safe by default
+   --> crates\daemon\src\main.rs:108:1
+    |
+108 | unsafe fn send_unicode_char(c: char) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: `#[warn(unsafe_op_in_unsafe_fn)]` (part of `#[warn(rust_2024_compatibility)]`) on by default
+
+warning[E0133]: call to unsafe function `windows_sys::Win32::UI::Input::KeyboardAndMouse::SendInput` is unsafe and requires unsafe block
+   --> crates\daemon\src\main.rs:124:9
+    |
+124 |         SendInput(2, inputs.as_ptr(), std::mem::size_of::<INPUT>() as i32);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ call to unsafe function
+    |
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+
+warning[E0133]: call to unsafe function `windows_sys::Win32::UI::Input::KeyboardAndMouse::SendInput` is unsafe and requires unsafe block
+   --> crates\daemon\src\main.rs:147:5
+    |
+147 |     SendInput(1, &input, std::mem::size_of::<INPUT>() as i32);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ call to unsafe function
+    |
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+note: an unsafe function restricts its caller, but its body is safe by default
+   --> crates\daemon\src\main.rs:128:1
+    |
+128 | unsafe fn send_key_event(scan_code: u16, is_key_down: bool, _is_sys_key: bool) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some errors have detailed explanations: E0133, E0277.
+For more information about an error, try `rustc --explain E0133`.
+warning: `daemon` (bin "daemon") generated 4 warnings
+error: could not compile `daemon` (bin "daemon") due to 1 previous error; 4 warnings emitted
