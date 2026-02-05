@@ -48,7 +48,9 @@ impl Default for Config {
 
         Self {
             profiles,
-            default_profile: DefaultProfile::default(),
+            default_profile: DefaultProfile {
+                default: "Qwerty".to_string(),
+            },
             global_scripts: HashMap::new(),
         }
     }
@@ -84,20 +86,19 @@ mod tests {
     fn test_config_parsing() {
         let toml_content = r#"
 [profiles]
-profileA = "C:/User/phybkc/profiles/profileA.json"
+qwerty = "profiles/qwerty.json"
 
 [default_profile]
-default = "profileA"
+default = "qwerty"
 
 [global_scripts]
-scriptA = "C:/User/phybkc/scripts/scriptA.phybkc"
 "#;
         let config: Config = toml::from_str(toml_content).unwrap();
         assert_eq!(
-            config.profiles.get("profileA").unwrap(),
-            "C:/User/phybkc/profiles/profileA.json"
+            config.profiles.get("qwerty").unwrap(),
+            "profiles/qwerty.json"
         );
-        assert_eq!(config.default_profile.default, "profileA");
+        assert_eq!(config.default_profile.default, "qwerty");
     }
 
     #[test]

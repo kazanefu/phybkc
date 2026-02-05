@@ -81,6 +81,8 @@ fn init_maps() -> (HashMap<&'static str, u16>, HashMap<u16, &'static str>) {
     map!("SemiColon", 0x27);
     map!("Quote", 0x28);
     map!("Grave", 0x29); // BackQuote / Tilde / HanZen
+    map!("LeftBracket", 0x1A);
+    map!("RightBracket", 0x1B);
     map!("LeftShift", 0x2A);
     map!("Shift", 0x2A); // Default to Left Shift
     map!("BackSlash", 0x2B);

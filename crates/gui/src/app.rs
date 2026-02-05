@@ -20,6 +20,7 @@ pub struct PhybkcApp {
     pub import_path: String,
     pub new_script_path: String,
     pub last_scancode: Option<u16>,
+    pub previous_vk_states: [bool; 256],
 }
 
 impl PhybkcApp {
@@ -40,6 +41,7 @@ impl PhybkcApp {
             import_path: String::new(),
             new_script_path: String::new(),
             last_scancode: None,
+            previous_vk_states: [false; 256],
         };
         app.load_default_profile();
         app
@@ -246,37 +248,33 @@ impl eframe::App for PhybkcApp {
             View::Profiles => views::profiles::profiles_view(ui, self),
             View::Scripts => views::scripts::scripts_view(ui, self),
             View::Mappings => {
-                // Capture ScanCode only on actual key press events
-                ctx.input(|i| {
-                    for event in &i.events {
-                        if let egui::Event::Key {
-                            pressed: true,
-                            repeat: false,
-                            ..
-                        } = event
-                        {
-                            for vk in 1..256u32 {
-                                let state = unsafe {
-                                    windows_sys::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState(
-                                        vk as i32,
-                                    )
-                                };
-                                if (state as u32 & 0x8000) != 0 {
-                                    let sc = unsafe {
-                                        windows_sys::Win32::UI::Input::KeyboardAndMouse::MapVirtualKeyW(
-                                            vk, 0,
-                                        )
-                                    };
-                                    if sc != 0 {
-                                        self.last_scancode = Some(sc as u16);
-                                        // We take the first one found down this frame
-                                        break;
-                                    }
-                                }
-                            }
+                // Capture ScanCode using state transitions for robustness
+                for vk in 1..256u32 {
+                    // Skip generic/ambiguous VKs (VK_SHIFT, VK_CONTROL, VK_MENU)
+                    if vk == 0x10 || vk == 0x11 || vk == 0x12 {
+                        continue;
+                    }
+
+                    let is_down = unsafe {
+                        (windows_sys::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState(
+                            vk as i32,
+                        ) as u32
+                            & 0x8000)
+                            != 0
+                    };
+
+                    let prev_down = self.previous_vk_states[vk as usize];
+                    if is_down && !prev_down {
+                        // New key press detected
+                        let sc = unsafe {
+                            windows_sys::Win32::UI::Input::KeyboardAndMouse::MapVirtualKeyW(vk, 0)
+                        };
+                        if sc != 0 {
+                            self.last_scancode = Some(sc as u16);
                         }
                     }
-                });
+                    self.previous_vk_states[vk as usize] = is_down;
+                }
                 views::mappings::mappings_view(ui, self)
             }
         });
