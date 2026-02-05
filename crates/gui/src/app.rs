@@ -18,11 +18,13 @@ pub struct PhybkcApp {
     // Profile Management State
     pub new_profile_name: String,
     pub import_path: String,
+    pub new_script_path: String,
+    pub last_scancode: Option<u16>,
 }
 
 impl PhybkcApp {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        let config = Config::load_from_file("sample/config.toml").ok();
+        let config = Config::load_from_file("config.toml").ok();
         let mut app = Self {
             config,
             current_profile: None,
@@ -30,6 +32,8 @@ impl PhybkcApp {
             editing_script: None,
             new_profile_name: String::new(),
             import_path: String::new(),
+            new_script_path: String::new(),
+            last_scancode: None,
         };
         app.load_default_profile();
         app
@@ -37,14 +41,15 @@ impl PhybkcApp {
 
     fn load_default_profile(&mut self) {
         if let Some(config) = &self.config
-            && let Some(profile_path) = config.profiles.get(&config.default_profile.default) {
-                self.current_profile = Profile::load_from_file(profile_path).ok();
-            }
+            && let Some(profile_path) = config.profiles.get(&config.default_profile.default)
+        {
+            self.current_profile = Profile::load_from_file(profile_path).ok();
+        }
     }
 
     pub fn save_config(&self) {
         if let Some(config) = &self.config {
-            let _ = config.save_to_file("sample/config.toml");
+            let _ = config.save_to_file("config.toml");
         }
     }
 
@@ -52,70 +57,125 @@ impl PhybkcApp {
         if name.is_empty() {
             return;
         }
-        let path = format!("sample/{}.json", name);
+        let path = format!("profiles/{}.json", name);
         let new_profile = Profile {
             name: name.to_string(),
             keyboard: "Default".to_string(),
             scripts: vec![],
             keys: std::collections::HashMap::new(),
         };
-        if let Some(config) = &mut self.config
-            && new_profile.save_to_file(&path).is_ok() {
+        if let Some(config) = &mut self.config {
+            let _ = std::fs::create_dir_all("profiles");
+            if new_profile.save_to_file(&path).is_ok() {
                 config.profiles.insert(name.to_string(), path);
                 self.save_config();
+            } else {
+                eprintln!("Failed to save new profile to {}", path);
             }
+        }
     }
 
     pub fn delete_profile(&mut self, name: &str) {
         if let Some(config) = &mut self.config
-            && let Some(path) = config.profiles.remove(name) {
-                let _ = std::fs::remove_file(path);
-                if config.default_profile.default == name {
-                    config.default_profile.default =
-                        config.profiles.keys().next().cloned().unwrap_or_default();
-                }
-                self.save_config();
-                if self
-                    .current_profile
-                    .as_ref()
-                    .map(|p| p.name == name)
-                    .unwrap_or(false)
-                {
-                    self.current_profile = None;
-                    self.load_default_profile();
-                }
+            && let Some(path) = config.profiles.remove(name)
+        {
+            let _ = std::fs::remove_file(path);
+            if config.default_profile.default == name {
+                config.default_profile.default =
+                    config.profiles.keys().next().cloned().unwrap_or_default();
             }
+            self.save_config();
+            if self
+                .current_profile
+                .as_ref()
+                .map(|p| p.name == name)
+                .unwrap_or(false)
+            {
+                self.current_profile = None;
+                self.load_default_profile();
+            }
+        }
     }
 
     pub fn import_profile(&mut self, path: &str) {
         if let Ok(profile) = Profile::load_from_file(path) {
             let name = profile.name.clone();
-            let new_path = format!("sample/{}.json", name);
-            if std::fs::copy(path, &new_path).is_ok()
-                && let Some(config) = &mut self.config {
-                    config.profiles.insert(name, new_path);
-                    self.save_config();
-                }
+            let new_path = format!("profiles/{}.json", name);
+            let _ = std::fs::create_dir_all("profiles");
+
+            // Avoid copying if the file is already at the target location
+            let should_copy = if let Ok(canon_src) = std::fs::canonicalize(path)
+                && let Ok(canon_dst) = std::fs::canonicalize(&new_path)
+            {
+                canon_src != canon_dst
+            } else {
+                true
+            };
+
+            let copy_ok = if should_copy {
+                std::fs::copy(path, &new_path).is_ok()
+            } else {
+                true
+            };
+
+            if copy_ok && let Some(config) = &mut self.config {
+                config.profiles.insert(name, new_path);
+                self.save_config();
+            } else if !copy_ok {
+                eprintln!("Failed to copy profile from {} to {}", path, new_path);
+            }
+        } else {
+            eprintln!("Failed to load profile from {}", path);
         }
     }
 
     pub fn export_profile(&self, name: &str, target_dir: &str) {
-        if let Some(config) = &self.config
-            && let Some(path) = config.profiles.get(name)
-                && let Ok(profile) = Profile::load_from_file(path) {
-                    let _ = std::fs::create_dir_all(target_dir);
-                    let target_json =
-                        std::path::Path::new(target_dir).join(format!("{}.json", name));
-                    let _ = std::fs::copy(path, &target_json);
+        if let (Some(_config), Some(path)) = (
+            &self.config,
+            self.config.as_ref().and_then(|c| c.profiles.get(name)),
+        ) && let Ok(profile) = Profile::load_from_file(path)
+        {
+            let _ = std::fs::create_dir_all(target_dir);
+            let profiles_dir = std::path::Path::new(target_dir).join("profiles");
+            let scripts_dir = std::path::Path::new(target_dir).join("scripts");
+            let _ = std::fs::create_dir_all(&profiles_dir);
+            let _ = std::fs::create_dir_all(&scripts_dir);
 
-                    for script in &profile.scripts {
-                        let script_path = std::path::Path::new(script);
-                        if let Some(file_name) = script_path.file_name() {
-                            let target_script = std::path::Path::new(target_dir).join(file_name);
-                            let _ = std::fs::copy(script, target_script);
-                        }
-                    }
+            let target_json = profiles_dir.join(format!("{}.json", name));
+            let _ = std::fs::copy(path, &target_json);
+
+            for script in &profile.scripts {
+                let script_path = std::path::Path::new(script);
+                if let Some(file_name) = script_path.file_name() {
+                    let target_script = scripts_dir.join(file_name);
+                    let _ = std::fs::copy(script, target_script);
                 }
+            }
+        }
+    }
+
+    pub fn add_script_to_profile(&mut self, script_path: &str) {
+        if script_path.is_empty() {
+            return;
+        }
+        if let (Some(profile), Some(config)) = (&mut self.current_profile, &self.config) {
+            profile.scripts.push(script_path.to_string());
+            if let Some(path) = config.profiles.get(&profile.name) {
+                let _ = profile.save_to_file(path);
+            }
+        }
+        self.new_script_path.clear();
+    }
+
+    pub fn remove_script_from_profile(&mut self, index: usize) {
+        if let (Some(profile), Some(config)) = (&mut self.current_profile, &self.config)
+            && index < profile.scripts.len()
+        {
+            profile.scripts.remove(index);
+            if let Some(path) = config.profiles.get(&profile.name) {
+                let _ = profile.save_to_file(path);
+            }
+        }
     }
 
     pub fn set_default_profile(&mut self, name: &str) {
@@ -159,7 +219,23 @@ impl eframe::App for PhybkcApp {
         egui::CentralPanel::default().show(ctx, |ui| match self.selected_view {
             View::Profiles => views::profiles::profiles_view(ui, self),
             View::Scripts => views::scripts::scripts_view(ui, self),
-            View::Mappings => views::mappings::mappings_view(ui, self),
+            View::Mappings => {
+                // Poll for ScanCode if focused
+                for vk in 1..255u32 {
+                    let state = unsafe {
+                        windows_sys::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState(vk as i32)
+                    };
+                    if state as u32 & 0x8000 != 0 {
+                        let sc = unsafe {
+                            windows_sys::Win32::UI::Input::KeyboardAndMouse::MapVirtualKeyW(vk, 0)
+                        };
+                        if sc != 0 {
+                            self.last_scancode = Some(sc as u16);
+                        }
+                    }
+                }
+                views::mappings::mappings_view(ui, self)
+            }
         });
     }
 }

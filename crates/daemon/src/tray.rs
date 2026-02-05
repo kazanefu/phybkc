@@ -58,6 +58,19 @@ pub fn handle_tray_events() -> TrayAction {
 
 fn load_icon() -> tray_icon::Icon {
     let (width, height) = (32, 32);
-    let rgba = vec![0u8; (width * height * 4) as usize];
+    let mut rgba = Vec::with_capacity((width * height * 4) as usize);
+    for y in 0..height {
+        for x in 0..width {
+            // Create a simple blue/purple gradient
+            let r = (x * 4) as u8;
+            let g = 100;
+            let b = (y * 4) as u8;
+            let a = 255;
+            rgba.push(r);
+            rgba.push(g);
+            rgba.push(b);
+            rgba.push(a);
+        }
+    }
     tray_icon::Icon::from_rgba(rgba, width, height).expect("Failed to create icon")
 }

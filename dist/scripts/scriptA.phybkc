@@ -1,0 +1,30 @@
+// Sample Script for Testing
+
+CLI = cmd;
+
+macro NOTIFY {
+    Send: String("Macro");
+    Run: "echo Script Triggered!";
+}
+
+#0x02 + Code_X {
+    NOTIFY!;
+    if now_input(#0x01) {
+        Execute: "Write-Output 'Triggered with Escape'";
+    }
+}
+
+#0x3B {
+    Send: String("Hello World!") + Code_Enter;
+}
+
+Code_F12 {
+    Send: String("F12!") + Code_Enter;
+}
+Code_F11 {
+    Send: Code_Ctrl:hold + Code_X;
+}
+
+Code_F10 {
+	Send: String("F10");
+}

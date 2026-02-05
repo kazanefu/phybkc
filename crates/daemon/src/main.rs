@@ -31,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
         .unwrap();
 
     // 1. Load Config
-    let config = Config::load_from_file("sample/config.toml")?;
+    let config = Config::load_from_file("config.toml")?;
 
     // 2. Initial Profile Load
     load_profile(&config, &config.default_profile.default).await?;

@@ -4,6 +4,29 @@ pub fn mappings_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
     ui.heading("Key Mappings");
     ui.add_space(10.0);
 
+    // ScanCode Detector Section
+    ui.group(|ui| {
+        ui.horizontal(|ui| {
+            ui.label("󰌌 ScanCode Detector:");
+            if let Some(sc) = app.last_scancode {
+                let name = profile::get_name(sc).unwrap_or("Unknown");
+                ui.colored_label(
+                    egui::Color32::from_rgb(0, 255, 127),
+                    format!("0x{:02X} ({})", sc, name),
+                );
+            } else {
+                ui.label("Press any key...");
+            }
+            if ui.button("Clear").clicked() {
+                app.last_scancode = None;
+            }
+        });
+    });
+
+    ui.add_space(10.0);
+    ui.separator();
+    ui.add_space(10.0);
+
     let mut profile = if let Some(p) = &app.current_profile {
         p.clone()
     } else {
@@ -22,10 +45,11 @@ pub fn mappings_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             if ui.button("Save Changes").clicked()
                 && let Some(config) = &app.config
-                    && let Some(path) = config.profiles.get(&profile.name) {
-                        let _ = profile.save_to_file(path);
-                        app.current_profile = Some(profile.clone());
-                    }
+                && let Some(path) = config.profiles.get(&profile.name)
+            {
+                let _ = profile.save_to_file(path);
+                app.current_profile = Some(profile.clone());
+            }
         });
     });
 

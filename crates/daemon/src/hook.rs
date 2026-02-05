@@ -61,14 +61,15 @@ pub unsafe extern "system" fn low_level_keyboard_proc(
                     }
 
                     if let (Some((_, block)), Some(executor_lock)) = (best_match, EXECUTOR.get())
-                        && let Some(executor) = executor_lock.read().unwrap().as_ref() {
-                            let exec = Arc::clone(executor);
-                            let b = block.clone();
-                            tokio::spawn(async move {
-                                exec.execute_block(&b).await;
-                            });
-                            return 1;
-                        }
+                        && let Some(executor) = executor_lock.read().unwrap().as_ref()
+                    {
+                        let exec = Arc::clone(executor);
+                        let b = block.clone();
+                        tokio::spawn(async move {
+                            exec.execute_block(&b).await;
+                        });
+                        return 1;
+                    }
                 }
             } else {
                 h.remove(&actual_sc);
@@ -76,19 +77,20 @@ pub unsafe extern "system" fn low_level_keyboard_proc(
         }
 
         if let Some(profile_lock) = CURRENT_PROFILE.get()
-            && let Some(profile) = profile_lock.read().unwrap().as_ref() {
-                let sc_str = format!("0x{:02X}", actual_sc);
-                if let Some(target_sc) = profile
-                    .keys
-                    .get(&sc_str)
-                    .and_then(|name| profile::get_scancode(name))
-                {
-                    unsafe {
-                        send_key_event(target_sc, is_key_down, false);
-                    }
-                    return 1;
+            && let Some(profile) = profile_lock.read().unwrap().as_ref()
+        {
+            let sc_str = format!("0x{:02X}", actual_sc);
+            if let Some(target_sc) = profile
+                .keys
+                .get(&sc_str)
+                .and_then(|name| profile::get_scancode(name))
+            {
+                unsafe {
+                    send_key_event(target_sc, is_key_down, false);
                 }
+                return 1;
             }
+        }
     }
     unsafe { CallNextHookEx(ptr::null_mut(), n_code, w_param, l_param) }
 }

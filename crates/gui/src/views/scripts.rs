@@ -2,6 +2,16 @@ use eframe::egui;
 
 pub fn scripts_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
     ui.heading("Active Scripts");
+    ui.horizontal(|ui| {
+        ui.label("Add Script Path:");
+        ui.text_edit_singleline(&mut app.new_script_path);
+        if ui.button("✚ Add").clicked() {
+            app.add_script_to_profile(&app.new_script_path.clone());
+        }
+    });
+
+    ui.add_space(10.0);
+    ui.separator();
     ui.add_space(10.0);
 
     let mut close_editor = false;
@@ -38,16 +48,21 @@ pub fn scripts_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
     }
 
     if let Some(profile) = &app.current_profile {
+        let scripts = profile.scripts.clone();
         egui::ScrollArea::vertical().show(ui, |ui| {
-            for script_path in &profile.scripts {
+            for (i, script_path) in scripts.iter().enumerate() {
                 ui.group(|ui| {
                     ui.horizontal(|ui| {
                         ui.label(script_path);
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            if ui.button("🗑").clicked() {
+                                app.remove_script_from_profile(i);
+                            }
                             if ui.button("Edit").clicked()
-                                && let Ok(content) = std::fs::read_to_string(script_path) {
-                                    app.editing_script = Some((script_path.clone(), content));
-                                }
+                                && let Ok(content) = std::fs::read_to_string(script_path)
+                            {
+                                app.editing_script = Some((script_path.clone(), content));
+                            }
                         });
                     });
                 });

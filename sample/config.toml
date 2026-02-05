@@ -1,8 +1,0 @@
-[profiles]
-profileA = "sample/profileA.json"
-profileB = "sample/profileB.json"
-
-[default_profile]
-default = "profileA"
-
-[global_scripts]

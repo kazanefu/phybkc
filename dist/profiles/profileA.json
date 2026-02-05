@@ -1,0 +1,12 @@
+{
+  "name": "profileA",
+  "keyboard": "JIS",
+  "scripts": [
+    "scripts/scriptA.phybkc"
+  ],
+  "keys": {
+    "0x11": "Q",
+    "0x1E": "A",
+    "0x01": "Escape"
+  }
+}

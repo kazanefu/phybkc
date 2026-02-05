@@ -1,0 +1,21 @@
+{
+    "name": "Dvorak",
+    "keyboard": "Default",
+    "scripts": [],
+    "keys": {
+        "0x10": "Apostrophe",
+        "0x11": "Comma",
+        "0x12": "Period",
+        "0x13": "P",
+        "0x14": "Y",
+        "0x15": "F",
+        "0x1E": "A",
+        "0x1F": "O",
+        "0x20": "E",
+        "0x21": "U",
+        "0x2C": "Semicolon",
+        "0x2D": "Q",
+        "0x2E": "J",
+        "0x2F": "K"
+    }
+}

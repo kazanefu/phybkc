@@ -1,0 +1,11 @@
+{
+  "name": "profileC",
+  "keyboard": "Default",
+  "scripts": [
+    "scripts/scriptA.phybkc"
+  ],
+  "keys": {
+    "0x1D": "Enter",
+    "0x11": "Enter"
+  }
+}
