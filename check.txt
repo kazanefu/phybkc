@@ -1,0 +1,60 @@
+    Checking daemon v0.1.0 (C:\Users\hayate\projects\phybkc\crates\daemon)
+warning: unused import: `windows_sys::Win32::UI::Input::KeyboardAndMouse::*`
+ --> crates\daemon\src\hook.rs:7:5
+  |
+7 | use windows_sys::Win32::UI::Input::KeyboardAndMouse::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `TriggerKey`
+ --> crates\daemon\src\simulator.rs:3:43
+  |
+3 | use dsl::{InputSimulator, SendExpression, TriggerKey};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `windows_sys::Win32::Foundation::*`
+  --> crates\daemon\src\main.rs:11:5
+   |
+11 | use windows_sys::Win32::Foundation::*;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `windows_sys::Win32::UI::Input::KeyboardAndMouse::*`
+  --> crates\daemon\src\main.rs:12:5
+   |
+12 | use windows_sys::Win32::UI::Input::KeyboardAndMouse::*;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: `Rc<RefCell<tray_icon::platform_impl::platform::TrayIcon>>` cannot be shared between threads safely
+   --> crates\daemon\src\tray.rs:7:19
+    |
+  7 | static TRAY_ICON: OnceLock<TrayIcon> = OnceLock::new();
+    |                   ^^^^^^^^^^^^^^^^^^ `Rc<RefCell<tray_icon::platform_impl::platform::TrayIcon>>` cannot be shared between threads safely
+    |
+    = help: within `TrayIcon`, the trait `Sync` is not implemented for `Rc<RefCell<tray_icon::platform_impl::platform::TrayIcon>>`
+note: required because it appears within the type `TrayIcon`
+   --> C:\Users\hayate\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tray-icon-0.19.3\src\lib.rs:318:12
+    |
+318 | pub struct TrayIcon {
+    |            ^^^^^^^^
+    = note: required for `OnceLock<TrayIcon>` to implement `Sync`
+    = note: shared static variables must have a type that implements `Sync`
+
+error[E0277]: `Rc<RefCell<tray_icon::platform_impl::platform::TrayIcon>>` cannot be sent between threads safely
+   --> crates\daemon\src\tray.rs:7:19
+    |
+  7 | static TRAY_ICON: OnceLock<TrayIcon> = OnceLock::new();
+    |                   ^^^^^^^^^^^^^^^^^^ `Rc<RefCell<tray_icon::platform_impl::platform::TrayIcon>>` cannot be sent between threads safely
+    |
+    = help: within `TrayIcon`, the trait `std::marker::Send` is not implemented for `Rc<RefCell<tray_icon::platform_impl::platform::TrayIcon>>`
+note: required because it appears within the type `TrayIcon`
+   --> C:\Users\hayate\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tray-icon-0.19.3\src\lib.rs:318:12
+    |
+318 | pub struct TrayIcon {
+    |            ^^^^^^^^
+    = note: required for `OnceLock<TrayIcon>` to implement `Sync`
+    = note: shared static variables must have a type that implements `Sync`
+
+For more information about this error, try `rustc --explain E0277`.
+warning: `daemon` (bin "daemon") generated 4 warnings
+error: could not compile `daemon` (bin "daemon") due to 2 previous errors; 4 warnings emitted

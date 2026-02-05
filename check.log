@@ -1,0 +1,10 @@
+    Checking daemon v0.1.0 (C:\Users\hayate\projects\phybkc\crates\daemon)
+error: no rules expected `;`
+  --> crates\daemon\src\tray.rs:43:43
+   |
+43 |     let rgba = vec![0x00, 0x00, 0x00, 0xFF; (width * height * 4) as usize];
+   |                                           ^ no rules expected this token in macro call
+   |
+   = note: while trying to match sequence start
+
+error: could not compile `daemon` (bin "daemon") due to 1 previous error
