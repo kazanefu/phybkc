@@ -115,6 +115,26 @@ fn init_maps() -> (HashMap<&'static str, u16>, HashMap<u16, &'static str>) {
     map!("Muhenkan", 0x7B);
     map!("Hiragana", 0x70);
 
+    // Extended Keys (with E0 prefix represented in the upper byte)
+    map!("LWin", 0xE05B);
+    map!("RWin", 0xE05C);
+    map!("Apps", 0xE05D);
+    map!("ArrowUp", 0xE048);
+    map!("ArrowDown", 0xE050);
+    map!("ArrowLeft", 0xE04B);
+    map!("ArrowRight", 0xE04D);
+    map!("Insert", 0xE052);
+    map!("Delete", 0xE053);
+    map!("Home", 0xE047);
+    map!("End", 0xE04F);
+    map!("PageUp", 0xE049);
+    map!("PageDown", 0xE051);
+    map!("PrintScreen", 0xE037); // Actually part of a sequence but common
+    map!("RightCtrl", 0xE01D);
+    map!("RightAlt", 0xE038);
+    map!("NumEnter", 0xE01C);
+    map!("NumSlash", 0xE035);
+
     (n2s, s2n)
 }
 
