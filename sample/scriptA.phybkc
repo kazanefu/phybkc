@@ -12,5 +12,9 @@ macro NOTIFY {
 }
 
 #0x3B {
-    Send: String("Hello from Phybkc") + Code_Enter;
+    Send: String("Hello World!") + Code_Enter;
+}
+
+Code_F12 {
+    Send: String("F12!") + Code_Enter;
 }
