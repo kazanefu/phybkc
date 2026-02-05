@@ -1,6 +1,4 @@
 [profiles]
-profileA = "profiles/profileA.json"
-profileB = "profiles/profileB.json"
 Qwerty = "profiles/qwerty.json"
 Dvorak = "profiles/dvorak.json"
 
