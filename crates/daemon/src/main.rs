@@ -109,13 +109,13 @@ unsafe fn send_unicode_char(c: char) {
     let mut utf16 = [0u16; 2];
     c.encode_utf16(&mut utf16);
 
-    for i in 0..2 {
-        if utf16[i] == 0 && i > 0 {
+    for (i, &code) in utf16.iter().enumerate() {
+        if code == 0 && i > 0 {
             break;
         }
         unsafe {
             inputs[0].r#type = INPUT_KEYBOARD;
-            inputs[0].Anonymous.ki.wScan = utf16[i];
+            inputs[0].Anonymous.ki.wScan = code;
             inputs[0].Anonymous.ki.dwFlags = KEYEVENTF_UNICODE;
 
             inputs[1] = inputs[0];
@@ -138,7 +138,7 @@ unsafe fn send_key_event(scan_code: u16, is_key_down: bool, _is_sys_key: bool) {
 
         let actual_sc = if scan_code > 0xFF00 {
             flags |= KEYEVENTF_EXTENDEDKEY;
-            scan_code as u16 & 0xFF
+            scan_code & 0xFF
         } else {
             scan_code
         };
@@ -180,15 +180,15 @@ unsafe extern "system" fn low_level_keyboard_proc(
 
                 if let Some(triggers) = SCRIPT_TRIGGERS.get() {
                     let h_ref: &BTreeSet<u16> = &h;
-                    if let Some(block) = triggers.get(h_ref) {
-                        if let Some(executor) = EXECUTOR.get() {
-                            let exec = Arc::clone(executor);
-                            let b = block.clone();
-                            tokio::spawn(async move {
-                                exec.execute_block(&b).await;
-                            });
-                            return 1;
-                        }
+                    if let Some(block) = triggers.get(h_ref)
+                        && let Some(executor) = EXECUTOR.get()
+                    {
+                        let exec = Arc::clone(executor);
+                        let b = block.clone();
+                        tokio::spawn(async move {
+                            exec.execute_block(&b).await;
+                        });
+                        return 1;
                     }
                 }
             } else {
@@ -198,13 +198,13 @@ unsafe extern "system" fn low_level_keyboard_proc(
 
         if let Some(profile) = CURRENT_PROFILE.get() {
             let sc_str = format!("0x{:02X}", actual_sc);
-            if let Some(target_key_name) = profile.keys.get(&sc_str) {
-                if let Some(target_sc) = profile::get_scancode(target_key_name) {
-                    unsafe {
-                        send_key_event(target_sc, is_key_down, false);
-                    }
-                    return 1;
+            if let Some(target_key_name) = profile.keys.get(&sc_str)
+                && let Some(target_sc) = profile::get_scancode(target_key_name)
+            {
+                unsafe {
+                    send_key_event(target_sc, is_key_down, false);
                 }
+                return 1;
             }
         }
     }

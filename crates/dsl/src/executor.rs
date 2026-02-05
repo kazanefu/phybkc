@@ -119,11 +119,10 @@ impl Executor {
                                 break;
                             }
                         }
-                        if !matched {
-                            if let Some(b) = else_branch {
+                        if !matched
+                            && let Some(b) = else_branch {
                                 self.execute_statements(b).await;
                             }
-                        }
                     }
                 }
                 Statement::Loop { count, body } => {

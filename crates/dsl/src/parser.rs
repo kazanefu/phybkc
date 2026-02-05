@@ -1,5 +1,5 @@
 use crate::ast::*;
-use winnow::ascii::{alphanumeric1, digit1, hex_digit1, multispace0, multispace1, space0};
+use winnow::ascii::{alphanumeric1, digit1, hex_digit1, multispace0, multispace1};
 use winnow::combinator::{alt, delimited, eof, opt, preceded, repeat, separated, seq, terminated};
 use winnow::error::ModalResult;
 use winnow::prelude::*;
@@ -239,7 +239,7 @@ fn parse_string_literal_expr(input: &mut &str) -> PResult<SendExpression> {
 
 fn parse_key_expr(input: &mut &str) -> PResult<SendExpression> {
     parse_trigger_key
-        .map(|k| SendExpression::Key(k))
+        .map(SendExpression::Key)
         .parse_next(input)
 }
 
