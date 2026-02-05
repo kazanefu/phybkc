@@ -76,6 +76,8 @@ pub enum Condition {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum SendExpression {
     Key(TriggerKey),
+    Hold(TriggerKey),
+    Release(TriggerKey),
     String(String),
     Combo(Vec<TriggerKey>), // Key + Key
 }

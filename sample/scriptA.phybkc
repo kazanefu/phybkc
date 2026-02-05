@@ -1,5 +1,7 @@
 // Sample Script for Testing
 
+CLI = cmd;
+
 macro NOTIFY {
     Run: "echo Script Triggered!";
 }
@@ -17,4 +19,7 @@ macro NOTIFY {
 
 Code_F12 {
     Send: String("F12!") + Code_Enter;
+}
+Code_F11 {
+    Send: Code_Ctrl:hold + Code_X;
 }

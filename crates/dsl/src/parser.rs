@@ -48,7 +48,10 @@ fn parse_global_setting(input: &mut &str) -> PResult<GlobalSetting> {
         _: ws,
         _: "=",
         _: ws,
-        parse_string_literal,
+        alt((
+            parse_string_literal,
+            take_till(1.., ';').map(|s: &str| s.trim().to_string())
+        )),
         _: ws,
         _: ";"
     )
@@ -238,9 +241,13 @@ fn parse_string_literal_expr(input: &mut &str) -> PResult<SendExpression> {
 }
 
 fn parse_key_expr(input: &mut &str) -> PResult<SendExpression> {
-    parse_trigger_key
-        .map(SendExpression::Key)
-        .parse_next(input)
+    let key = parse_trigger_key.parse_next(input)?;
+    let suffix: Option<&str> = opt(alt((":hold", ":release"))).parse_next(input)?;
+    match suffix {
+        Some(":hold") => Ok(SendExpression::Hold(key)),
+        Some(":release") => Ok(SendExpression::Release(key)),
+        _ => Ok(SendExpression::Key(key)),
+    }
 }
 
 fn parse_wait_stmt(input: &mut &str) -> PResult<Statement> {
@@ -378,7 +385,7 @@ fn parse_condition_args(input: &mut &str) -> PResult<Vec<TriggerCombinations>> {
 
 // Utilities
 fn parse_string_literal(input: &mut &str) -> PResult<String> {
-    delimited('"', take_while(0.., |c| c != '"' && c != '\\'), '"')
+    delimited('"', take_while(0.., |c| c != '"'), '"')
         .map(|s: &str| s.to_string())
         .parse_next(input)
 }
@@ -397,5 +404,90 @@ mod tests {
         "#;
         let script = parse_script.parse_next(&mut input).unwrap();
         assert_eq!(script.macros.len(), 1);
+    }
+
+    #[test]
+    fn test_parse_multi_line_macro() {
+        let mut input = r#"
+            macro MULTI {
+                Run: "echo line 1";
+                wait(100);
+                Execute: "echo line 2";
+            }
+        "#;
+        let script = parse_script
+            .parse_next(&mut input)
+            .expect("Should parse multi-line macro");
+        assert_eq!(script.macros[0].body.len(), 3);
+    }
+
+    #[test]
+    fn test_parse_multi_line_macro_with_comments() {
+        let mut input = r#"
+            macro MULTI {
+                Run: "echo line 1";
+                // comment here
+                wait(100);
+                Execute: "echo line 2"; // another comment
+            }
+        "#;
+        let script = parse_script
+            .parse_next(&mut input)
+            .expect("Should parse multi-line macro with comments");
+        assert_eq!(script.macros[0].body.len(), 3);
+    }
+
+    #[test]
+    fn test_parse_backslash_in_string() {
+        let mut input = r#"
+            macro TEST {
+                Run: "C:\path\to\app.exe";
+            }
+        "#;
+        let script = parse_script
+            .parse_next(&mut input)
+            .expect("Should handle backslashes in strings");
+        assert_eq!(script.macros.len(), 1);
+    }
+
+    #[test]
+    fn test_parse_unquoted_cli() {
+        let mut input = r#"
+            CLI = PowerShell;
+        "#;
+        let script = parse_script
+            .parse_next(&mut input)
+            .expect("Should handle unquoted CLI");
+        assert_eq!(script.global_settings.len(), 1);
+        let GlobalSetting::Cli(val) = &script.global_settings[0];
+        assert_eq!(val, "PowerShell");
+    }
+
+    #[test]
+    fn test_parse_send_combo() {
+        let mut input = r#"
+            Code_F11 {
+                Send: Code_Ctrl:hold + Code_X;
+            }
+        "#;
+        let script = parse_script
+            .parse_next(&mut input)
+            .expect("Should parse script with send combo");
+        let stmt = &script.blocks[0].body[0];
+        if let Statement::Send(exprs) = stmt {
+            assert_eq!(exprs.len(), 2, "Should be 2 expressions (Hold and Key)");
+            if let SendExpression::Hold(key) = &exprs[0] {
+                assert_eq!(key, &TriggerKey::Virtual("Ctrl".to_string()));
+            } else {
+                panic!("Expected SendExpression::Hold, got {:?}", exprs[0]);
+            }
+            if let SendExpression::Key(key) = &exprs[1] {
+                assert_eq!(key, &TriggerKey::Virtual("X".to_string()));
+            } else {
+                panic!("Expected SendExpression::Key, got {:?}", exprs[1]);
+            }
+        } else {
+            panic!("Expected Statement::Send, got {:?}", stmt);
+        }
     }
 }

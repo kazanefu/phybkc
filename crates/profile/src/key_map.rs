@@ -108,6 +108,12 @@ fn init_maps() -> (HashMap<&'static str, u16>, HashMap<u16, &'static str>) {
     map!("Num0", 0x52);
     map!("NumDot", 0x53);
 
+    // Japanese Keys
+    map!("HanZen", 0x29);
+    map!("Henkan", 0x79);
+    map!("Muhenkan", 0x7B);
+    map!("Hiragana", 0x70);
+
     (n2s, s2n)
 }
 

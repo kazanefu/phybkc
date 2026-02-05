@@ -21,16 +21,32 @@ struct WindowsInputSimulator;
 #[async_trait]
 impl InputSimulator for WindowsInputSimulator {
     async fn send_keys(&self, expressions: &[SendExpression]) {
+        let mut to_release = BTreeSet::new();
         for expr in expressions {
             match expr {
                 SendExpression::Key(k) => {
                     if let Some(sc) = resolve_trigger_key(k) {
                         unsafe {
                             send_key_event(sc, true, false);
+                            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+                            send_key_event(sc, false, false);
                         }
+                    }
+                }
+                SendExpression::Hold(k) => {
+                    if let Some(sc) = resolve_trigger_key(k) {
+                        unsafe {
+                            send_key_event(sc, true, false);
+                        }
+                        to_release.insert(sc);
+                    }
+                }
+                SendExpression::Release(k) => {
+                    if let Some(sc) = resolve_trigger_key(k) {
                         unsafe {
                             send_key_event(sc, false, false);
                         }
+                        to_release.remove(&sc);
                     }
                 }
                 SendExpression::String(s) => {
@@ -48,14 +64,23 @@ impl InputSimulator for WindowsInputSimulator {
                             unsafe {
                                 send_key_event(sc, true, false);
                             }
+                            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
                         }
                     }
+                    tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
                     for sc in scancodes.into_iter().rev() {
                         unsafe {
                             send_key_event(sc, false, false);
                         }
+                        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
                     }
                 }
+            }
+        }
+        // Automatic release at the end of the Send statement (at ;)
+        for sc in to_release {
+            unsafe {
+                send_key_event(sc, false, false);
             }
         }
     }
@@ -180,7 +205,22 @@ unsafe extern "system" fn low_level_keyboard_proc(
 
                 if let Some(triggers) = SCRIPT_TRIGGERS.get() {
                     let h_ref: &BTreeSet<u16> = &h;
-                    if let Some(block) = triggers.get(h_ref)
+                    let mut best_match: Option<(&BTreeSet<u16>, &Block)> = None;
+
+                    for (combo, block) in triggers {
+                        // Check if the combo is a subset of held keys AND contains the key just pressed
+                        if combo.is_subset(h_ref) && combo.contains(&actual_sc) {
+                            if let Some((best_combo, _)) = best_match {
+                                if combo.len() > best_combo.len() {
+                                    best_match = Some((combo, block));
+                                }
+                            } else {
+                                best_match = Some((combo, block));
+                            }
+                        }
+                    }
+
+                    if let Some((_, block)) = best_match
                         && let Some(executor) = EXECUTOR.get()
                     {
                         let exec = Arc::clone(executor);

@@ -19,7 +19,7 @@ pub trait ConditionEvaluator: Send + Sync + fmt::Debug {
 }
 
 pub struct Executor {
-    global_settings: Vec<GlobalSetting>,
+    cli: Option<String>,
     macros: HashMap<String, Vec<Statement>>,
     input_sim: Arc<dyn InputSimulator>,
     cond_eval: Arc<dyn ConditionEvaluator>,
@@ -28,7 +28,7 @@ pub struct Executor {
 impl fmt::Debug for Executor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Executor")
-            .field("global_settings", &self.global_settings)
+            .field("cli", &self.cli)
             .field("macros", &self.macros)
             .field("input_sim", &self.input_sim)
             .field("cond_eval", &self.cond_eval)
@@ -46,8 +46,14 @@ impl Executor {
         for m in script.macros {
             macros.insert(m.name, m.body);
         }
+        let mut cli = None;
+        for setting in script.global_settings {
+            match setting {
+                GlobalSetting::Cli(val) => cli = Some(val),
+            }
+        }
         Self {
-            global_settings: script.global_settings,
+            cli,
             macros,
             input_sim,
             cond_eval,
@@ -68,26 +74,49 @@ impl Executor {
         async move {
             match stmt {
                 Statement::Run(cmd) => {
-                    let _ = Command::new("cmd").args(["/C", cmd]).spawn();
-                }
-                Statement::Execute(cmd) => {
-                    let _ = Command::new("powershell").args(["-Command", cmd]).spawn();
-                }
-                Statement::TryRun { command, failure } => {
-                    match Command::new("cmd").args(["/C", command]).status() {
-                        Ok(status) if status.success() => {}
+                    let cli = self.cli.as_deref().unwrap_or("cmd");
+                    match cli.to_lowercase().as_str() {
+                        "powershell" | "pwsh" => {
+                            let _ = Command::new("powershell")
+                                .args([
+                                    "-Command",
+                                    &format!("Start-Process powershell -ArgumentList '-NoExit', '-Command', '{}'", cmd),
+                                ])
+                                .spawn();
+                        }
+                        "cmd" | "command prompt" => {
+                            let _ = Command::new("cmd").args(["/C", "start", "cmd", "/K", cmd]).spawn();
+                        }
                         _ => {
-                            if let Some(f) = failure {
-                                self.execute_statement(f).await;
-                            }
+                            // Generic shell or path
+                            let _ = Command::new("cmd").args(["/C", "start", cli, cmd]).spawn();
                         }
                     }
                 }
+                Statement::Execute(cmd) => {
+                    let _ = Command::new(cmd).spawn();
+                }
+                Statement::TryRun { command, failure } => {
+                    let cli = self.cli.as_deref().unwrap_or("cmd");
+                    let success = match cli.to_lowercase().as_str() {
+                        "powershell" | "pwsh" => Command::new("powershell")
+                            .args(["-Command", command])
+                            .status()
+                            .map(|s| s.success())
+                            .unwrap_or(false),
+                        _ => Command::new("cmd")
+                            .args(["/C", command])
+                            .status()
+                            .map(|s| s.success())
+                            .unwrap_or(false),
+                    };
+
+                    if let (false, Some(f)) = (success, failure) {
+                        self.execute_statement(f).await;
+                    }
+                }
                 Statement::TryExecute { command, failure } => {
-                    match Command::new("powershell")
-                        .args(["-Command", command])
-                        .status()
-                    {
+                    match Command::new(command).status() {
                         Ok(status) if status.success() => {}
                         _ => {
                             if let Some(f) = failure {
