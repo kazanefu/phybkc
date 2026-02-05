@@ -80,7 +80,7 @@ fn init_maps() -> (HashMap<&'static str, u16>, HashMap<u16, &'static str>) {
     map!("LeftCtrl", 0x1D);
     map!("SemiColon", 0x27);
     map!("Quote", 0x28);
-    map!("BackQuote", 0x29); // Tilde
+    map!("Grave", 0x29); // BackQuote / Tilde / HanZen
     map!("LeftShift", 0x2A);
     map!("Shift", 0x2A); // Default to Left Shift
     map!("BackSlash", 0x2B);
@@ -109,7 +109,6 @@ fn init_maps() -> (HashMap<&'static str, u16>, HashMap<u16, &'static str>) {
     map!("NumDot", 0x53);
 
     // Japanese Keys
-    map!("HanZen", 0x29);
     map!("Henkan", 0x79);
     map!("Muhenkan", 0x7B);
     map!("Hiragana", 0x70);
