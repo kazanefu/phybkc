@@ -1,7 +1,9 @@
 {
     "name": "Qwerty",
     "keyboard": "Default",
-    "scripts": [],
+    "scripts": [
+        "scripts/test_win.phybkc"
+    ],
     "keys": {
         "0x02": "1",
         "0x03": "2",

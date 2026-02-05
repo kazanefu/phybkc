@@ -1,0 +1,13 @@
+CLI = cmd;
+
+macro Terminal{
+	Send: Code_LWin:hold + Code_R + Code_LWin:release + String("wt") + Code_Enter;
+}
+
+Code_Ctrl + Code_Shift + Code_W {
+	Run: "wsl ~";
+}
+
+Code_Ctrl + Code_Shift + Code_T {
+	Terminal!; // Notice the ! for macro call
+}

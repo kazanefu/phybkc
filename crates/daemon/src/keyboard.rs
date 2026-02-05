@@ -36,20 +36,39 @@ pub unsafe fn send_key_event(scan_code: u16, is_key_down: bool, _is_sys_key: boo
     unsafe {
         input.r#type = INPUT_KEYBOARD;
 
-        let mut flags = KEYEVENTF_SCANCODE;
+        let mut dw_flags = 0;
         if !is_key_down {
-            flags |= KEYEVENTF_KEYUP;
+            dw_flags |= KEYEVENTF_KEYUP;
         }
 
-        let actual_sc = if scan_code > 0xFF00 {
-            flags |= KEYEVENTF_EXTENDEDKEY;
-            scan_code & 0xFF
-        } else {
-            scan_code
+        // For Windows keys and some others, using VK is more reliable with SendInput
+        let (vk, actual_sc, use_sc) = match scan_code {
+            0xE05B => (VK_LWIN, 0x5B, false),
+            0xE05C => (VK_RWIN, 0x5C, false),
+            0xE05D => (VK_APPS, 0x5D, false),
+            _ => {
+                if scan_code > 0xFF00 {
+                    (0, scan_code & 0xFF, true)
+                } else {
+                    (0, scan_code, true)
+                }
+            }
         };
 
-        input.Anonymous.ki.wScan = actual_sc;
-        input.Anonymous.ki.dwFlags = flags;
+        if use_sc {
+            input.Anonymous.ki.wScan = actual_sc;
+            input.Anonymous.ki.dwFlags = dw_flags | KEYEVENTF_SCANCODE;
+            if scan_code > 0xFF00 {
+                input.Anonymous.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+            }
+        } else {
+            input.Anonymous.ki.wVk = vk;
+            input.Anonymous.ki.dwFlags = dw_flags;
+            // Most VKs don't need EXTENDEDKEY but LWin/RWin/Apps technically are
+            if scan_code > 0xFF00 {
+                input.Anonymous.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+            }
+        }
 
         SendInput(1, &input, std::mem::size_of::<INPUT>() as i32);
     }
