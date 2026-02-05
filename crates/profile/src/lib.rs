@@ -32,6 +32,28 @@ pub struct DefaultProfile {
     pub default: String,
 }
 
+impl Default for DefaultProfile {
+    fn default() -> Self {
+        Self {
+            default: "Qwerty".to_string(),
+        }
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        let mut profiles = HashMap::new();
+        profiles.insert("Qwerty".to_string(), "profiles/qwerty.json".to_string());
+        profiles.insert("Dvorak".to_string(), "profiles/dvorak.json".to_string());
+
+        Self {
+            profiles,
+            default_profile: DefaultProfile::default(),
+            global_scripts: HashMap::new(),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Profile {
     pub name: String,

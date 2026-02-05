@@ -24,7 +24,13 @@ pub struct PhybkcApp {
 
 impl PhybkcApp {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        let config = Config::load_from_file("config.toml").ok();
+        let config = if let Ok(cfg) = Config::load_from_file("config.toml") {
+            Some(cfg)
+        } else {
+            let default_cfg = Config::default();
+            let _ = default_cfg.save_to_file("config.toml");
+            Some(default_cfg)
+        };
         let mut app = Self {
             config,
             current_profile: None,
@@ -48,12 +54,15 @@ impl PhybkcApp {
     }
 
     pub fn save_config(&self) {
-        if let Some(config) = &self.config {
-            let _ = config.save_to_file("config.toml");
+        if let Some(config) = &self.config
+            && let Err(e) = config.save_to_file("config.toml")
+        {
+            eprintln!("Failed to save config.toml: {:?}", e);
         }
     }
 
     pub fn create_profile(&mut self, name: &str) {
+        let name = name.trim();
         if name.is_empty() {
             return;
         }
@@ -66,12 +75,14 @@ impl PhybkcApp {
         };
         if let Some(config) = &mut self.config {
             let _ = std::fs::create_dir_all("profiles");
-            if new_profile.save_to_file(&path).is_ok() {
+            if let Err(e) = new_profile.save_to_file(&path) {
+                eprintln!("Failed to save new profile to {}: {:?}", path, e);
+            } else {
                 config.profiles.insert(name.to_string(), path);
                 self.save_config();
-            } else {
-                eprintln!("Failed to save new profile to {}", path);
             }
+        } else {
+            eprintln!("Config not loaded - cannot create profile {}", name);
         }
     }
 
@@ -98,6 +109,10 @@ impl PhybkcApp {
     }
 
     pub fn import_profile(&mut self, path: &str) {
+        let path = path.trim().trim_matches('"');
+        if path.is_empty() {
+            return;
+        }
         if let Ok(profile) = Profile::load_from_file(path) {
             let name = profile.name.clone();
             let new_path = format!("profiles/{}.json", name);
@@ -113,7 +128,15 @@ impl PhybkcApp {
             };
 
             let copy_ok = if should_copy {
-                std::fs::copy(path, &new_path).is_ok()
+                if let Err(e) = std::fs::copy(path, &new_path) {
+                    eprintln!(
+                        "Failed to copy profile from {} to {}: {:?}",
+                        path, new_path, e
+                    );
+                    false
+                } else {
+                    true
+                }
             } else {
                 true
             };
@@ -121,8 +144,11 @@ impl PhybkcApp {
             if copy_ok && let Some(config) = &mut self.config {
                 config.profiles.insert(name, new_path);
                 self.save_config();
-            } else if !copy_ok {
-                eprintln!("Failed to copy profile from {} to {}", path, new_path);
+            } else if copy_ok && self.config.is_none() {
+                eprintln!(
+                    "Config not loaded - imported file to {}, but couldn't update config.toml",
+                    new_path
+                );
             }
         } else {
             eprintln!("Failed to load profile from {}", path);
