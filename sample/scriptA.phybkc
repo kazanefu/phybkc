@@ -3,6 +3,7 @@
 CLI = cmd;
 
 macro NOTIFY {
+    Send: String("Macro");
     Run: "echo Script Triggered!";
 }
 
