@@ -1,10 +1,14 @@
 mod app;
+mod hook;
 mod views;
 
 use app::PhybkcApp;
 use eframe::egui;
 
 fn main() -> eframe::Result {
+    // Start the keyboard hook thread to capture physical scancodes
+    let scancode_slot = hook::start_hook_thread();
+
     let icon = load_icon();
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -17,10 +21,10 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "Phybkc Dashboard",
         options,
-        Box::new(|cc| {
+        Box::new(move |cc| {
             // Use dark mode by default for premium feel
             cc.egui_ctx.set_visuals(egui::Visuals::dark());
-            Ok(Box::new(PhybkcApp::new(cc)))
+            Ok(Box::new(PhybkcApp::new(cc, scancode_slot)))
         }),
     )
 }

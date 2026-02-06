@@ -1,6 +1,8 @@
 use crate::views;
 use eframe::egui;
 use profile::{Config, Profile};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU16, Ordering};
 
 #[derive(PartialEq)]
 pub enum View {
@@ -20,11 +22,11 @@ pub struct PhybkcApp {
     pub import_path: String,
     pub new_script_path: String,
     pub last_scancode: Option<u16>,
-    pub previous_vk_states: [bool; 256],
+    scancode_slot: Arc<AtomicU16>,
 }
 
 impl PhybkcApp {
-    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>, scancode_slot: Arc<AtomicU16>) -> Self {
         let config = if let Ok(cfg) = Config::load_from_file("config.toml") {
             Some(cfg)
         } else {
@@ -41,7 +43,7 @@ impl PhybkcApp {
             import_path: String::new(),
             new_script_path: String::new(),
             last_scancode: None,
-            previous_vk_states: [false; 256],
+            scancode_slot,
         };
         app.load_default_profile();
         app
@@ -248,35 +250,13 @@ impl eframe::App for PhybkcApp {
             View::Profiles => views::profiles::profiles_view(ui, self),
             View::Scripts => views::scripts::scripts_view(ui, self),
             View::Mappings => {
-                // Capture ScanCode using state transitions for robustness
-                for vk in 1..256u32 {
-                    // Skip generic/ambiguous VKs (VK_SHIFT, VK_CONTROL, VK_MENU)
-                    if vk == 0x10 || vk == 0x11 || vk == 0x12 {
-                        continue;
-                    }
+                // Request continuous repaint while on this view to check for key presses
+                ctx.request_repaint();
 
-                    let is_down = unsafe {
-                        (windows_sys::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState(
-                            vk as i32,
-                        ) as u32
-                            & 0x8000)
-                            != 0
-                    };
-
-                    let prev_down = self.previous_vk_states[vk as usize];
-                    if is_down && !prev_down {
-                        // New key press detected
-                        // MAPVK_VK_TO_VSC_EX (4) returns extended key prefix in high byte
-                        let sc = unsafe {
-                            windows_sys::Win32::UI::Input::KeyboardAndMouse::MapVirtualKeyW(vk, 4)
-                        };
-                        if sc != 0 {
-                            // High byte contains E0/E1 prefix, low byte contains scan code
-                            // e.g., LWin returns 0xE05B
-                            self.last_scancode = Some(sc as u16);
-                        }
-                    }
-                    self.previous_vk_states[vk as usize] = is_down;
+                // Read physical scancode from the hook thread using swap to reset after reading
+                let current_sc = self.scancode_slot.swap(0xFFFF, Ordering::Relaxed);
+                if current_sc != 0xFFFF {
+                    self.last_scancode = Some(current_sc);
                 }
                 views::mappings::mappings_view(ui, self)
             }

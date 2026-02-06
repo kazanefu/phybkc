@@ -38,7 +38,19 @@ pub fn mappings_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
 
     ui.horizontal(|ui| {
         if ui.button("✚ Add Mapping").clicked() {
-            profile.keys.insert("0x00".to_string(), "None".to_string());
+            // Find a unique key that doesn't exist yet
+            let mut new_sc = 0u16;
+            loop {
+                let key = format!("0x{:02X}", new_sc);
+                if let std::collections::hash_map::Entry::Vacant(e) = profile.keys.entry(key) {
+                    e.insert("None".to_string());
+                    break;
+                }
+                new_sc += 1;
+                if new_sc > 0xFF {
+                    break; // Safety limit
+                }
+            }
             changed = true;
         }
 
