@@ -63,11 +63,9 @@ pub unsafe fn send_key_event(scan_code: u16, is_key_down: bool, _is_sys_key: boo
             }
         } else {
             input.Anonymous.ki.wVk = vk;
-            input.Anonymous.ki.dwFlags = dw_flags;
-            // Most VKs don't need EXTENDEDKEY but LWin/RWin/Apps technically are
-            if scan_code > 0xFF00 {
-                input.Anonymous.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-            }
+            input.Anonymous.ki.wScan = actual_sc;
+            // LWin/RWin/Apps are extended keys - always set EXTENDEDKEY flag
+            input.Anonymous.ki.dwFlags = dw_flags | KEYEVENTF_EXTENDEDKEY;
         }
 
         SendInput(1, &input, std::mem::size_of::<INPUT>() as i32);

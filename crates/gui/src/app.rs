@@ -266,10 +266,13 @@ impl eframe::App for PhybkcApp {
                     let prev_down = self.previous_vk_states[vk as usize];
                     if is_down && !prev_down {
                         // New key press detected
+                        // MAPVK_VK_TO_VSC_EX (4) returns extended key prefix in high byte
                         let sc = unsafe {
-                            windows_sys::Win32::UI::Input::KeyboardAndMouse::MapVirtualKeyW(vk, 0)
+                            windows_sys::Win32::UI::Input::KeyboardAndMouse::MapVirtualKeyW(vk, 4)
                         };
                         if sc != 0 {
+                            // High byte contains E0/E1 prefix, low byte contains scan code
+                            // e.g., LWin returns 0xE05B
                             self.last_scancode = Some(sc as u16);
                         }
                     }
