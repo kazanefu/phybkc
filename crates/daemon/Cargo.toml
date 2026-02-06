@@ -15,3 +15,6 @@ tokio = { version = "1.49", features = ["full"] }
 async-trait = "0.1"
 tray-icon = "0.19"
 image = "0.25"
+
+[build-dependencies]
+winres = "0.1"

@@ -26,22 +26,12 @@ fn main() -> eframe::Result {
 }
 
 fn load_icon() -> egui::IconData {
-    let (width, height) = (32, 32);
-    let mut rgba = Vec::with_capacity((width * height * 4) as usize);
-    for y in 0..height {
-        for x in 0..width {
-            let r = (x * 4) as u8;
-            let g = 100;
-            let b = (y * 4) as u8;
-            let a = 255;
-            rgba.push(r);
-            rgba.push(g);
-            rgba.push(b);
-            rgba.push(a);
-        }
-    }
+    let icon_bytes = include_bytes!("../../../assets/icon.png");
+    let image = image::load_from_memory(icon_bytes).expect("Failed to load icon");
+    let image = image.to_rgba8();
+    let (width, height) = image.dimensions();
     egui::IconData {
-        rgba,
+        rgba: image.into_raw(),
         width,
         height,
     }
