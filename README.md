@@ -1,3 +1,3 @@
 # phybkc
 
-KeyMapping & CustomShortCut base on "Physical key position".
+キーマッピングとAHKみたいなスクリプトによるショートカット設定ができます
