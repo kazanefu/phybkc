@@ -52,12 +52,12 @@ pub fn profiles_view(ui: &mut egui::Ui, app: &mut crate::app::PhybkcApp) {
                         ui.horizontal(|ui| {
                             ui.vertical(|ui| {
                                 ui.horizontal(|ui| {
-                                    ui.label(egui::RichText::new(&name).strong().size(18.0));
+                                    ui.label(egui::RichText::new(&name).strong().size(18.0).color(egui::Color32::WHITE));
                                     if is_default {
-                                        ui.label(egui::RichText::new("(Default)").small().weak());
+                                        ui.label(egui::RichText::new("(Default)").small().weak().color(egui::Color32::WHITE));
                                     }
                                 });
-                                ui.label(egui::RichText::new(&path).weak());
+                                ui.label(egui::RichText::new(&path).weak().color(egui::Color32::WHITE));
                             });
 
                             ui.with_layout(
