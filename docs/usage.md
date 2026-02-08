@@ -81,3 +81,6 @@
 **Mappings**ではキーマッピングをできます。左上の`ScanCode Detector`に押したキーのScanCodeが表示されます。また、`Add Mapping`でマッピングを追加できます左側にScanCodeを、右側に割り当てたいものを書いてください。また、変更の保存は忘れないようにご注意ください。
 ![Mapping](./resources/mapping.png)
 
+### Daemon
+
+実際に作ったプロファイルを適用するにはタスクトレイ常駐の`daemon.exe`を起動してください。また、プロファイルに変更があった場合は`Reload Profile`で再読み込みしてください。プロファイルを切り替えるときは`Profiles`から切り替えてください。
