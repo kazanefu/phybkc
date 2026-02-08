@@ -1,7 +1,7 @@
 [profiles]
 Qwerty = "profiles/qwerty.json"
 Dvorak = "profiles/dvorak.json"
-Colemak = "profiles/Colemak.json"
+Colemak = "profiles/colemak.json"
 
 [default_profile]
 default = "Qwerty"
