@@ -84,3 +84,4 @@
 ### Daemon
 
 実際に作ったプロファイルを適用するにはタスクトレイ常駐の`daemon.exe`を起動してください。また、プロファイルに変更があった場合は`Reload Profile`で再読み込みしてください。プロファイルを切り替えるときは`Profiles`から切り替えてください。
+![daemon](./resources/daemon.png)
